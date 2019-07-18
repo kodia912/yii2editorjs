@@ -1,0 +1,29 @@
+{
+  "name": "kodia912/yii2editorjs",
+  "description": "Yii 2 extension for using Editor.js",
+  "version": "1.0.0",
+  "type": "yii2-extension",
+  "keywords": [
+    "yii",
+    "wysiwyg",
+    "editor",
+    "editorjs"
+  ],
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Alexander Kodentsev",
+      "email": "912kodia@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "yiisoft/yii2": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "kodia912\\yii2editorjs\\": ""
+    }
+  }
+}
