@@ -9,156 +9,97 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\InputWidget;
 
-/**
- * Class CKEditor
- * @package sadovojav\ckeditor
- */
 class EditorJS extends InputWidget
 {
-    /**
-     * Editor options
-     * @var array
-     */
     public $editorOptions = [];
 
-    /**
-     * Container options
-     * @var array
-     */
     public $containerOptions = [];
 
-    /**
-     * Add extra plugins
-     * @var array
-     */
     public $extraPlugins = [];
 
-    /**
-     * Initialisation on event
-     * @var bool
-     */
-    public $initOnEvent = false;
+    public $defaultPlugins = [
+        'header' => [
+            'var' => 'header: Header',
+            'file' => 'header/plugin.js'
+        ],
+        'image' => [
+            'var' => 'image: ImageTool',
+            'file' => 'image/plugin.js'
+        ],
+        'embed' => [
+            'var' => 'embed: Embed',
+            'file' => 'embed/embed.js'
+        ],
+        'delimiter' => [
+            'var' => 'delimiter: Delimiter',
+            'file' => 'delimiter/plugin.js'
+        ],
+        'list' => [
+            'var' => 'list: List',
+            'file' => 'list/plugin.js'
+        ],
+        'quote' => [
+            'var' => 'quote: Quote',
+            'file' => 'quote/plugin.js'
+        ],
+        'table' => [
+            'var' => 'table: Table',
+            'file' => 'table/plugin.js'
+        ],
+        'warning' => [
+            'var' => 'warning: Warning',
+            'file' => 'warning/plugin.js'
+        ]
+    ];
 
-    private $_inline = false;
+    private $fullPlugins = [];
 
-    const TYPE_STANDARD = 'standard';
-    const TYPE_INLINE = 'inline';
+    public $tools = [];
+
+
 
     public function init()
     {
         parent::init();
 
-        /*if (array_key_exists('inline', $this->editorOptions)) {
-            $this->_inline = $this->editorOptions['inline'];
-
-            unset($this->editorOptions['inline']);
+        foreach ( $this->defaultPlugins as $key => $item){
+            $this->defaultPlugins[$key]['file'] = __DIR__.'/assets/editorjs/plugins/'.$item['file'];
         }
 
-        if (array_key_exists('preset', $this->editorOptions)) {
-            if ($this->editorOptions['preset'] == 'basic') {
-                $this->presetBasic();
-            } elseif ($this->editorOptions['preset'] == 'standard') {
-                $this->presetStandard();
-            } elseif ($this->editorOptions['preset'] == 'full') {
-                $this->presetFull();
-            }
-
-            unset($this->editorOptions['preset']);
+        if( count($this->extraPlugins) ){
+            $this->fullPlugins = array_merge($this->defaultPlugins, $this->extraPlugins);
+        } else {
+            $this->fullPlugins = $this->defaultPlugins;
         }
 
-        if ($this->_inline && !isset($this->editorOptions['height'])) {
-            $this->editorOptions['height'] = 100;
+        if (!isset($this->containerOptions['id'])) {
+            $this->containerOptions['id'] = $this->getRandomID();
         }
 
-        if ($this->_inline && !isset($this->containerOptions['id'])) {
-            $this->containerOptions['id'] = $this->id . '_inline';
-        }*/
     }
 
-    /*private function presetBasic()
-    {
-        $options['height'] = 100;
-
-        $options['toolbarGroups'] = [
-            ['name' => 'undo'],
-            ['name' => 'basicstyles', 'groups' => ['basicstyles', 'cleanup']],
-            ['name' => 'colors'],
-            ['name' => 'links', 'groups' => ['links', 'insert']],
-            ['name' => 'others', 'groups' => ['others', 'about']],
-        ];
-        $options['removeButtons'] = 'Subscript,Superscript,Flash,Table,HorizontalRule,Smiley,SpecialChar,PageBreak,Iframe';
-        $options['removePlugins'] = 'elementspath';
-        $options['resize_enabled'] = false;
-
-
-        $this->editorOptions = ArrayHelper::merge($options, $this->editorOptions);
+    private function getRandomID($length = 20){
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return 'id'.$randomString;
     }
 
-    private function presetStandard()
-    {
-        $options['height'] = 300;
-
-        $options['toolbarGroups'] = [
-            ['name' => 'clipboard', 'groups' => ['mode', 'undo', 'selection', 'clipboard', 'doctools']],
-            ['name' => 'editing', 'groups' => ['tools', 'about']],
-            '/',
-            ['name' => 'paragraph', 'groups' => ['templates', 'list', 'indent', 'align']],
-            ['name' => 'insert'],
-            '/',
-            ['name' => 'basicstyles', 'groups' => ['basicstyles', 'cleanup']],
-            ['name' => 'colors'],
-            ['name' => 'links'],
-            ['name' => 'others'],
-        ];
-
-        $options['removeButtons'] = 'Smiley,Iframe';
-
-        if ($this->_inline) {
-            $options['extraPlugins'] = 'sourcedialog';
-            $options['removePlugins'] = 'sourcearea';
-        }
-
-        $this->editorOptions = ArrayHelper::merge($options, $this->editorOptions);
-    }
-
-
-    private function presetFull()
-    {
-        $options['height'] = 400;
-
-        $options['toolbarGroups'] = [
-            ['name' => 'clipboard', 'groups' => ['mode', 'undo', 'selection', 'clipboard', 'doctools']],
-            ['name' => 'editing', 'groups' => ['find', 'spellchecker', 'tools', 'about']],
-            '/',
-            ['name' => 'paragraph', 'groups' => ['templates', 'list', 'indent', 'align']],
-            ['name' => 'forms'],
-            '/',
-            ['name' => 'styles'],
-            ['name' => 'blocks'],
-            '/',
-            ['name' => 'basicstyles', 'groups' => ['basicstyles', 'colors', 'cleanup']],
-            ['name' => 'links', 'groups' => ['links', 'insert']],
-            ['name' => 'others'],
-        ];
-
-        if ($this->_inline) {
-            $options['extraPlugins'] = 'sourcedialog';
-            $options['removePlugins'] = 'sourcearea';
-        }
-
-        $this->editorOptions = ArrayHelper::merge($options, $this->editorOptions);
-    }*/
 
     public function run()
     {
         AssetBundle::register($this->getView());
 
-        $this->addExtraPlugins();
+//        $this->addExtraPlugins();
+        $this->addPluginsJs();
 
         echo Html::beginTag('div', $this->containerOptions);
 
         if ($this->hasModel()) {
-            echo Html::activeTextarea($this->model, $this->attribute, $this->options);
+            echo Html::activeTextarea($this->model, $this->attribute, array_merge($this->options, ['style' => 'display: block;', 'class' => $this->containerOptions['id']]));
         } else {
             echo Html::textarea($this->name, $this->value, $this->options);
         }
@@ -166,75 +107,100 @@ class EditorJS extends InputWidget
         echo Html::endTag('div');
 
 
-        /*if ($this->_inline) {
-            $editorJs = $this->getCKeditor(self::TYPE_INLINE);
+        $editorJs = $this->getEditorJS();
+        $this->getView()->registerJs($editorJs, View::POS_END);
 
-            $this->getView()->registerCss('#' . $this->containerOptions['id'] . ', #' . $this->containerOptions['id']
-                . ' .cke_textarea_inline{height: ' . $this->editorOptions['height'] . 'px;}');
-
-            $this->getView()->registerJs($editorJs, View::POS_END);
-        } elseif ($this->initOnEvent) {
-            $editorJs = $this->getCKeditor(self::TYPE_STANDARD);
-
-            $js = 'jQuery("#' . $this->options['id'] . '").one("' . $this->initOnEvent . '", function () {' . $editorJs . '});';
-
-            $this->getView()->registerJs($js, View::POS_END);
-        } else {
-            $editorJs = $this->getCKeditor(self::TYPE_STANDARD);
-
-            $this->getView()->registerJs($editorJs, View::POS_END);
-        }*/
     }
 
-    /*private function getCKeditor($type)
-    {
-        $editorJs = null;
-
-        switch ($type) {
-            case self::TYPE_STANDARD :
-                $editorJs = $this->typeStandard();
-                break;
-            case self::TYPE_INLINE :
-                $editorJs = $this->typeInline();
-                break;
+    private function getToolsOptions(){
+        $resultTools = [];
+        foreach ($this->tools as $tool){
+            $resultTools[] = $this->fullPlugins[$tool]['var'];
         }
 
-        return $editorJs;
+        return $resultTools;
     }
 
-    private function typeInline()
-    {
-        $js = "CKEDITOR.inline(";
-        $js .= Json::encode($this->options['id']);
-        $js .= empty($this->editorOptions) ? '' : ', ' . Json::encode($this->editorOptions);
-        $js .= ");";
+    private function  getEditorJS(){
+        $fieldValue = '';
 
+        if ($this->hasModel()) {
+            $fieldValue = $this->model[$this->attribute];
+        } else {
+            $fieldValue = $this->value;
+        }
+
+        $confing = [
+            'holder' => $this->containerOptions['id'],
+            'placeholder' => 'Начало документа',
+            'tools' => "#TOOLS#",
+            'data' => "#VALUE#"
+        ];
+
+        $json = Json::encode($confing);
+        $json = str_replace(["\"#TOOLS#\"", "\"#VALUE#\""], ["{".implode(',', $this->getToolsOptions())."}", $fieldValue], $json);
+
+        // TODO: Make normal saving
+
+        $js = "editor".$this->containerOptions['id']." = new EditorJS(".$json.");
+            
+            
+            $('form').submit(function(){
+                form = this;
+            
+                console.log('submit :' + $(form).attr('class'))
+                if(!$(form).hasClass('saved')){
+                    if( $(form).hasClass('saving') ){ return false;}
+                    $(form).addClass('saving');
+                
+                
+                    editor".$this->containerOptions['id'].".save().then((outputData) => {
+                      $(form).removeClass('saving').addClass('saved');
+                      saveddata = JSON.stringify(outputData)
+                      $('.".$this->containerOptions['id']."').val(saveddata);
+                      
+                      console.log($('.".$this->containerOptions['id']."').val());
+                      console.log('Article data: ', outputData);
+//                    $(form).submit();
+                    }).catch((error) => {
+                      console.log('Saving failed: ', error)
+                    });
+                    return false;
+                }
+               
+            });
+        ";
         return $js;
     }
 
-    private function typeStandard()
-    {
-        $js = "CKEDITOR.replace(";
-        $js .= Json::encode($this->options['id']);
-        $js .= empty($this->editorOptions) ? '' : ', ' . Json::encode($this->editorOptions);
-        $js .= ");";
 
-        return $js;
-    }*/
+    private function addPluginsJs(){
+        foreach ($this->tools as $item) {
+            list($folder, $file) = $value;
+            $path = $this->fullPlugins[$item]['file'];
+            list(, $assetPath) = Yii::$app->assetManager->publish($path);
+
+            $this->getView()->registerJsFile($assetPath,  ['position' => yii\web\View::POS_HEAD]);
+        }
+    }
+
 
     private function addExtraPlugins()
     {
-        /*if (!is_array($this->extraPlugins) || !count($this->extraPlugins)) {
+        if (!is_array($this->extraPlugins) || !count($this->extraPlugins)) {
             return false;
         }
 
         foreach ($this->extraPlugins as $value) {
-            list($name, $path, $file) = $value;
+            list($folder, $file) = $value;
+            $path = __DIR__.'/assets/editorjs/plugins/'.$folder.'/'.$file;
             list(, $assetPath) = Yii::$app->assetManager->publish($path);
 
-            $pluginJs = 'CKEDITOR.plugins.addExternal( "' . $name . '", "' . $assetPath . '/", "' . $file . '");';
+//            $this->getView()->registerJsFile("https://cdn.jsdelivr.net/npm/@editorjs/header@latest",  ['position' => yii\web\View::POS_HEAD]);
+            $this->getView()->registerJsFile($assetPath,  ['position' => yii\web\View::POS_HEAD]);
+//
 
-            $this->getView()->registerJs($pluginJs);
-        }*/
+        }
+
     }
 }
