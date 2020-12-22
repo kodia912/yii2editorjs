@@ -19,7 +19,9 @@ class EditorJS extends InputWidget
 
     public $defaultPlugins = [
         'header' => [
-            'var' => 'header: Header',
+            'var' => 'header: {
+                class: Header,
+        }',
             'file' => 'header/plugin.js'
         ],
         'image' => [
@@ -43,7 +45,10 @@ class EditorJS extends InputWidget
             'file' => 'quote/plugin.js'
         ],
         'table' => [
-            'var' => 'table: Table',
+            'var' => 'table: {
+              class: Table,
+              inlineToolbar: true,
+            }',
             'file' => 'table/plugin.js'
         ],
         'warning' => [
@@ -94,17 +99,23 @@ class EditorJS extends InputWidget
         AssetBundle::register($this->getView());
 
 //        $this->addExtraPlugins();
-        $this->addPluginsJs();
+        $this->addPluginsAssets();
 
         echo Html::beginTag('div', $this->containerOptions);
 
         if ($this->hasModel()) {
             echo Html::activeTextarea($this->model, $this->attribute, array_merge($this->options, ['style' => 'display: block;', 'class' => $this->containerOptions['id']]));
         } else {
-            echo Html::textarea($this->name, $this->value, $this->options);
+            echo Html::textarea($this->name, $this->value, array_merge($this->options, ['style' => 'display: block;', 'class' => $this->containerOptions['id']]));
         }
 
         echo Html::endTag('div');
+        echo Html::beginTag('div', [
+            'id' => 'adBtn'.$this->containerOptions['id'],
+            'class' => 'text-center'
+        ]);
+        echo Html::endTag('div');
+
 
 
         $editorJs = $this->getEditorJS();
@@ -133,9 +144,12 @@ class EditorJS extends InputWidget
         $confing = [
             'holder' => $this->containerOptions['id'],
             'placeholder' => 'Начало документа',
-            'tools' => "#TOOLS#",
-            'data' => "#VALUE#"
+            'tools' => "#TOOLS#"
         ];
+
+        if($fieldValue){
+            $confing['data'] = "#VALUE#";
+        }
 
         $json = Json::encode($confing);
         $json = str_replace(["\"#TOOLS#\"", "\"#VALUE#\""], ["{".implode(',', $this->getToolsOptions())."}", $fieldValue], $json);
@@ -144,6 +158,17 @@ class EditorJS extends InputWidget
 
         $js = "editor".$this->containerOptions['id']." = new EditorJS(".$json.");
             
+            var addBtnEditor = document.createElement('div');
+            addBtnEditor.classList.add('btn', 'btn-primary');
+            addBtnEditor.innerHTML = 'Добавить блок';
+            document.getElementById('adBtn".$this->containerOptions['id']."').appendChild(addBtnEditor);
+            
+            addBtnEditor.addEventListener('click', function(){
+                editor".$this->containerOptions['id'].".blocks.insert('paragraph', {}, {}, editor".$this->containerOptions['id'].".blocks.getBlocksCount(), true);
+                editor".$this->containerOptions['id'].".caret.setToLastBlock('start', 0);
+                editor".$this->containerOptions['id'].".blocks.getBlockByIndex(editor".$this->containerOptions['id'].".blocks.getBlocksCount()-1).classList.add('ce-block--focused')
+               
+            });
             
             $('form').submit(function(){
                 form = this;
@@ -174,13 +199,18 @@ class EditorJS extends InputWidget
     }
 
 
-    private function addPluginsJs(){
+    private function addPluginsAssets(){
         foreach ($this->tools as $item) {
-            list($folder, $file) = $value;
+//            list($folder, $file) = $value;
             $path = $this->fullPlugins[$item]['file'];
             list(, $assetPath) = Yii::$app->assetManager->publish($path);
-
             $this->getView()->registerJsFile($assetPath,  ['position' => yii\web\View::POS_HEAD]);
+
+            if( isset($this->fullPlugins[$item]['css']) ){
+                list(, $assetPathCss) = Yii::$app->assetManager->publish($this->fullPlugins[$item]['css']);
+                $this->getView()->registerCssFile($assetPathCss,  ['position' => yii\web\View::POS_HEAD]);
+            }
+
         }
     }
 
