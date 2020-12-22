@@ -1,7 +1,7 @@
 {
   "name": "kodia912/yii2editorjs",
   "description": "Yii 2 extension for using Editor.js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "type": "yii2-extension",
   "keywords": [
     "yii",
